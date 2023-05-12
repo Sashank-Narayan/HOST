@@ -8,8 +8,7 @@ Original file is located at
 """
 
 # !pip install GoogleNews
-# !pip install gnewsclient
-# !pip install snscrape==0.6.2.20230320
+# !pip install client
 # !pip install rake_nltk
 # !pip install GoogleNews
 
@@ -17,8 +16,6 @@ import pandas as pd
 # from newsapi import NewsApiClient
 import requests
 from GoogleNews import GoogleNews
-from gnewsclient import gnewsclient
-import snscrape.modules.twitter as sntwitter
 from datetime import datetime, date
 import json
 import numpy as np
@@ -32,7 +29,6 @@ import re
 import numpy as np
 from nltk.tokenize import RegexpTokenizer
 from nltk.stem import WordNetLemmatizer
-from rake_nltk import Rake
 from nltk.sentiment.vader import SentimentIntensityAnalyzer as SIA
 
 start_date = []
@@ -577,26 +573,6 @@ def googleNewsByStreet():
 
 # googleNewsByStreet()
 
-def GoogleNewsClient():
-    # declare a NewsClient object
-    results = []
-    for topic in gnews_client_topics:
-        client = gnewsclient.NewsClient(
-            language='english', location='United Kingdom', topic=topic, max_results=2)
-
-        # get news feed
-        news = client.get_news()
-        for new in news:
-            results.append({
-                "title": new['title'],
-                "link": new['link'],
-            })
-    df = pd.DataFrame(results)
-    df['city'] = 'All'
-    df['branch'] = 'All'
-    print(df)
-    final.append(df)
-
 def newAPI():
     api_key = '6b850797f0564befbca89e3595013e6c'
     results = []
@@ -631,53 +607,6 @@ def newAPI():
     print(pf)
 
 # newAPI()
-
-# !snscrape --verbose --dump-locals --jsonl --progress --max-results 5 --since 2021-01-01 twitter-search "vaccine until:2021-05-31" > text-query-vaccine_tweets.json
-# !snscrape --verbose twitter-search --cursor 'scroll:thGAVUV0VFVBaGgL3lh63usicWgIC5pd6bj7snEnEV46vzCBWAiXoYB0RFRkFVTFQ1ARW6oQEVAAA=' 'lang:he'
-# !pip install snscrape==0.6.1.20230314
-
-import snscrape.modules.twitter as sntwitter
-
-def twitterTrends():
-    keywords = ['tesco', 'holiday']
-    England = ['London']
-    countries = [England]
-    attributes_container = []
-    for keyword in keywords:
-        for country in countries:
-            for city in country:
-                for i, tweet in enumerate(sntwitter.TwitterSearchScraper(
-                        keyword + ' min_faves:500 near:' + city + ' since:' + start_date[0] + ' until:' + end_date[0] + ' (-filter:safe)',top=True).get_items()):
-                    if i > 10:
-                        break
-                    attributes_container.append([tweet.date.strftime(
-                        '%Y-%m-%d %H:%M:%S'), tweet.likeCount, tweet.sourceLabel, tweet.rawContent, city, keyword])
-                    print(attributes_container)
-
-
-    # Creating a dataframe to load the list
-    tweets_df = pd.DataFrame(attributes_container, columns=[
-        "datetime", "Number of Likes", "link", "title", "city", "keyword"])
-    final.append(tweets_df)
-
-# twitterTrends()
-
-def twitterTrendsByStreet():
-    attributes_container = []
-    for branch in branch_keyword:
-        for country in countries:
-            for city in country:
-                for i, tweet in enumerate(sntwitter.TwitterSearchScraper(
-                        branch + ' min_faves:500 near:' + city + 'since:' + start_date[0] + ' until:' + start_date[0] + ' (-filter:unsafe)',top=True).get_items()):
-                    if i > 10:
-                        break
-                    attributes_container.append([tweet.date.strftime(
-                        '%Y-%m-%d %H:%M:%S'), tweet.likeCount, tweet.sourceLabel, tweet.rawContent, city, branch, branch_keyword_bu_num[branch]])
-
-    # Creating a dataframe to load the list
-    tweets_df = pd.DataFrame(attributes_container, columns=[
-        "datetime", "Number of Likes", "link", "title", "city", "branch", "bu_num"])
-    final.append(tweets_df)
 
 def _removeNonAscii(s):
     return "".join(i for i in s if ord(i) < 128)
@@ -935,8 +864,8 @@ def upload_data(final_prod):
 
 def keyword_addition(sent):
   new_keywords = sent.split(' ')
-  gc = gspread.authorize(creds)
-  worksheet = gc.open(date.today().strftime("%d/%m/%Y") + '_event_type').sheet1
+  # gc = gspread.authorize(creds)
+  # worksheet = gc.open(date.today().strftime("%d/%m/%Y") + '_event_type').sheet1
   print(new_keywords)
   events.append(sent)
   # final_prod_events['GUID'] = [i for i in range(len(events))]
@@ -962,7 +891,7 @@ def keyword_addition(sent):
     keywords = list(set(keywords))
   print(keywords)
   final_keyword = keywords
-  set_with_dataframe(worksheet, final_prod_events)
+  # set_with_dataframe(worksheet, final_prod_events)
   return "Event Type Added"
 
 from datetime import datetime, timedelta, date
@@ -989,7 +918,9 @@ time_range = ["18:15", "17:58", "01:20", "05:15", "21:00", "17:10", "12:58", "08
 
 @app.route('/gsheetlinks', methods = ['GET'])
 def gsheet_links():
-  gc = gspread.authorize(creds)
+  credentials = {
+    "installed":{"client_id":"431703076976-vah4cpp44uu47l75vunkslfn1f0tjos3.apps.googleusercontent.com","project_id":"cogent-node-241403","auth_uri":"https://accounts.google.com/o/oauth2/auth","token_uri":"https://oauth2.googleapis.com/token","auth_provider_x509_cert_url":"https://www.googleapis.com/oauth2/v1/certs","client_secret":"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","redirect_uris":["http://localhost:5000"]}  }
+  gc, authorized_user = gspread.oauth_from_dict(credentials)
 
   sheet_links = []
   date_range = []
