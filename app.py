@@ -903,12 +903,12 @@ def daterange():
 # !pip install flask-ngrok
 
 from flask import Flask, jsonify, Response, request
-from flask_ngrok import run_with_ngrok
+# from flask_ngrok import run_with_ngrok
 from json import loads
 from gspread.exceptions import SpreadsheetNotFound
 
 app = Flask(__name__)
-run_with_ngrok(app)
+# run_with_ngrok(app)
 
 view_events = pd.DataFrame()
 final_fetch_response = pd.DataFrame()
