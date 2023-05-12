@@ -1036,6 +1036,11 @@ def clear_keyword_branches():
   branch_keyword.clear()
   start_date.clear()
   end_date.clear()
+    
+@app.route('/')
+# ‘/’ URL is bound with hello_world() function.
+def hello_world():
+    return 'Hello World
 
 if __name__ == '__main__':
   app.run()
